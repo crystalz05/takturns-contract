@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Hardhat artifacts
+artifacts/
+cache/
+typechain-types/
+
+# Coverage
+coverage/
+coverage.json
+
+# Deployment state
+ignition/deployments/
+
+# Environment secrets
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# TypeScript output
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
