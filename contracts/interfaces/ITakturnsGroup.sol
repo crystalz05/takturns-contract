@@ -17,6 +17,12 @@ interface ITakturnsGroup {
         Dissolved   // Dissolved via vote after a default
     }
 
+    enum VoteOption {
+        None,
+        Continue,
+        Dissolve
+    }
+
     // --- Structs ---
 
     struct MemberInfo {
@@ -37,7 +43,7 @@ interface ITakturnsGroup {
         uint256 maxMembers;
     }
 
-    // --- Events ---
+    // --- Events (Phase 2 & 3) ---
 
     event MemberJoined(address indexed member, uint256 collateralAmount, uint8 memberGrade);
     event GroupStarted(uint256 cycleStartTime, bool isMixedGrade, uint256 memberCount);
@@ -46,6 +52,16 @@ interface ITakturnsGroup {
     event CycleAdvanced(uint256 indexed newCycle, address indexed nextRecipient);
     event GroupCompleted(uint256 totalCycles);
     event CollateralRefunded(address indexed member, uint256 amount);
+
+    // --- Events (Phase 4) ---
+
+    event MemberDefaulted(address indexed member, uint256 indexed cycle, uint256 collateralSeized);
+    event VotingOpened(uint256 indexed cycle, uint256 activeVoterCount);
+    event VoteCast(address indexed member, VoteOption option);
+    event VoteResolved(VoteOption outcome);
+    event GroupDissolved(uint256 indexed cycle);
+    event MemberLeft(address indexed member, uint256 collateralReturned);
+    event EmergencyRefund(address indexed admin, uint256 indexed cycle);
 
     // --- Initialization ---
 
@@ -64,25 +80,49 @@ interface ITakturnsGroup {
 
     // --- Phase 2: Joining & Starting ---
 
-    /**
-     * @notice Join the group. Requires grade >= minGrade, not blacklisted,
-     *         and transfers collateral from the caller.
-     */
     function joinGroup() external;
-
-    /**
-     * @notice Admin-only. Transitions from Pending → Active. Determines collection
-     *         order and starts Cycle 1.
-     */
     function startGroup() external;
 
     // --- Phase 3: Contributions & Distribution ---
 
-    /**
-     * @notice Contribute the fixed amount for the current cycle.
-     *         When all members have contributed, auto-distributes to the current recipient.
-     */
     function contribute() external;
+
+    // --- Phase 4: Default Resolution, Voting & Leave ---
+
+    /**
+     * @notice Flag a member who has not contributed by the deadline.
+     *         Seizes their collateral, distributes it among active members,
+     *         blacklists them in the factory, and opens voting.
+     * @param _member The address of the defaulting member.
+     */
+    function flagDefaulter(address _member) external;
+
+    /**
+     * @notice Cast a vote to Continue or Dissolve the group after a default.
+     *         Only active (non-defaulted) members may vote.
+     * @param _option The vote: Continue or Dissolve.
+     */
+    function vote(VoteOption _option) external;
+
+    /**
+     * @notice Resolve the vote when supermajority (>66%) is reached.
+     *         Executes the winning outcome (continue or dissolve).
+     */
+    function resolveVote() external;
+
+    /**
+     * @notice Leave the group voluntarily.
+     *         - During Pending: full collateral refund.
+     *         - During Active: collateral returned, current cycle contribution forfeited.
+     *         - Reverts if the member has already received a payout.
+     */
+    function leaveGroup() external;
+
+    /**
+     * @notice Admin-only emergency circuit breaker. Returns all held funds
+     *         proportionally to active members.
+     */
+    function emergencyRefund() external;
 
     // --- View Functions ---
     
