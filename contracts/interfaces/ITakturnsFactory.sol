@@ -41,6 +41,14 @@ interface ITakturnsFactory {
      */
     function getMemberProfile(address _user) external view returns (MemberProfile memory);
 
+    /**
+     * @notice Calculates the collateral amount required for a contribution amount.
+     * @param _contribution The contribution amount per cycle.
+     * @param _minGrade The grade tier the group belongs to.
+     * @return The required collateral amount.
+     */
+    function getCollateralAmount(uint256 _contribution, uint8 _minGrade) external view returns (uint256);
+
     // --- State-Modifying Functions ---
 
     /**

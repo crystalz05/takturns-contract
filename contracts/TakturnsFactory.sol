@@ -84,6 +84,25 @@ contract TakturnsFactory is ITakturnsFactory {
         return profile;
     }
 
+    function getCollateralAmount(uint256 _contribution, uint8 _minGrade) external view override returns (uint256) {
+        require(_minGrade > 0 && _minGrade <= MAX_GRADE, "TakturnsFactory: Invalid grade");
+        GradeRules memory rules = _gradeRules[_minGrade];
+        return (_contribution * rules.collateralPercent) / 100;
+    }
+
+    /**
+     * @notice Checks if a user can join a group with the given minimum grade.
+     * @param _user The user's address.
+     * @param _minGrade The minimum grade required by the group.
+     * @return True if the user can join.
+     */
+    function canJoinGroup(address _user, uint8 _minGrade) external view returns (bool) {
+        MemberProfile memory profile = _memberProfiles[_user];
+        if (profile.isBlacklisted) return false;
+        uint8 effectiveGrade = profile.grade == 0 ? 1 : profile.grade;
+        return effectiveGrade >= _minGrade;
+    }
+
     // --- State-Modifying Functions ---
 
     function createGroup(
