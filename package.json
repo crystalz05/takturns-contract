@@ -8,6 +8,9 @@
     "coverage": "hardhat coverage",
     "deploy:local": "hardhat ignition deploy ignition/modules/deploy.ts",
     "deploy:sepolia": "hardhat ignition deploy ignition/modules/deploy.ts --network arbitrumSepolia",
+    "demo": "hardhat run scripts/demo-cycle.ts",
+    "demo:sepolia": "hardhat run scripts/demo-cycle.ts --network arbitrumSepolia",
+    "setup:testnet": "hardhat run scripts/setup-testnet.ts --network arbitrumSepolia",
     "clean": "hardhat clean"
   },
   "repository": {

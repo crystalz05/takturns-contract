@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.28;
+pragma solidity ^0.8.28;
 
 import "./interfaces/ITakturnsGroup.sol";
 import "./interfaces/ITakturnsFactory.sol";
@@ -540,6 +540,20 @@ contract TakturnsGroup is ITakturnsGroup, Initializable, ReentrancyGuard {
         // Actually, contributions already made this cycle stay valid.
         // We just resume: reset the cycle timer so remaining members can contribute.
         cycleStartTime = block.timestamp;
+
+        if (currentRecipientIndex >= collectionOrder.length) {
+            // Group is complete because the last remaining recipient defaulted.
+            // Refund any contributions made this cycle.
+            for (uint256 i = 0; i < memberAddresses.length; i++) {
+                address m = memberAddresses[i];
+                if (hasContributedThisCycle[currentCycle][m]) {
+                    hasContributedThisCycle[currentCycle][m] = false;
+                    IERC20(config.token).safeTransfer(m, config.contributionAmount);
+                }
+            }
+            _completeGroup();
+            return;
+        }
 
         // If all active members have already contributed, auto-distribute
         uint256 activeMemberCount = _getActiveMemberCount();
